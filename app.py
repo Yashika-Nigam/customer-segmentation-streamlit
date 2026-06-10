@@ -118,55 +118,61 @@ st.markdown("---")
 # -----------------------------
 st.sidebar.header("Enter Customer Behavioral Details")
 
-recency = st.sidebar.number_input(
+recency = st.sidebar.slider(
     "Recency: Days since last purchase",
-    min_value=0.0,
-    value=30.0,
-    step=1.0
+    min_value=0,
+    max_value=365,
+    value=30,
+    step=1
 )
 
-frequency = st.sidebar.number_input(
+frequency = st.sidebar.slider(
     "Frequency: Number of transactions/orders",
-    min_value=0.0,
-    value=5.0,
-    step=1.0
+    min_value=1,
+    max_value=100,
+    value=5,
+    step=1
 )
 
-monetary = st.sidebar.number_input(
+monetary = st.sidebar.slider(
     "Monetary: Total spending amount",
-    min_value=0.0,
-    value=1000.0,
-    step=100.0
+    min_value=0,
+    max_value=10000,
+    value=1000,
+    step=100
 )
 
-total_quantity = st.sidebar.number_input(
+total_quantity = st.sidebar.slider(
     "Total Quantity Purchased",
-    min_value=0.0,
-    value=100.0,
-    step=10.0
+    min_value=0,
+    max_value=5000,
+    value=100,
+    step=10
 )
 
-unique_products = st.sidebar.number_input(
+unique_products = st.sidebar.slider(
     "Unique Products Purchased",
-    min_value=0.0,
-    value=10.0,
-    step=1.0
+    min_value=1,
+    max_value=100,
+    value=10,
+    step=1
 )
 
-unique_orders = st.sidebar.number_input(
+unique_orders = st.sidebar.slider(
     "Unique Orders",
-    min_value=0.0,
-    value=5.0,
-    step=1.0
+    min_value=1,
+    max_value=50,
+    value=5,
+    step=1
 )
 
-avg_unit_price = st.sidebar.number_input(
+avg_unit_price = st.sidebar.slider(
     "Average Unit Price",
-    min_value=0.0,
-    value=20.0,
-    step=1.0
+    min_value=0,
+    max_value=500,
+    value=20,
+    step=1
 )
-
 
 # -----------------------------
 # Prediction
