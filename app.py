@@ -212,6 +212,44 @@ if st.sidebar.button("Predict Customer Segment"):
     # Predict next-month cluster
     next_cluster = int(xgb_model.predict(xgb_input)[0])
 
+        # -----------------------------
+    # Confidence / Certainty Scores
+    # -----------------------------
+
+    # KMeans does not give probability, so this is distance-based certainty
+    cluster_distances = kmeans.transform(input_encoded)[0]
+    distance_similarity = np.exp(-(cluster_distances - cluster_distances.min()))
+    cluster_certainty_scores = distance_similarity / distance_similarity.sum()
+    current_cluster_confidence = float(cluster_certainty_scores[current_cluster]) * 100
+
+    # XGBoost gives probability-based confidence
+    try:
+        next_cluster_probabilities = xgb_model.predict_proba(xgb_input)[0]
+        next_cluster_confidence = float(np.max(next_cluster_probabilities)) * 100
+    except Exception:
+        next_cluster_confidence = None
+
+    segmentation_silhouette_score = 0.5706
+    xgboost_test_accuracy = 78.58
+
+    # -----------------------------
+    # Confidence / Certainty Scores
+    # -----------------------------
+
+    # KMeans does not provide real probability.
+    # So we calculate distance-based certainty for current segment.
+    cluster_distances = kmeans.transform(input_encoded)[0]
+    distance_similarity = np.exp(-(cluster_distances - cluster_distances.min()))
+    cluster_certainty_scores = distance_similarity / distance_similarity.sum()
+    current_cluster_confidence = float(cluster_certainty_scores[current_cluster]) * 100
+
+    # XGBoost provides probability-based confidence for next-month prediction.
+    try:
+        next_cluster_probabilities = xgb_model.predict_proba(xgb_input)[0]
+        next_cluster_confidence = float(np.max(next_cluster_probabilities)) * 100
+    except Exception:
+        next_cluster_confidence = None
+
     # Get business names of clusters
     current_cluster_name = cluster_names.get(str(current_cluster), f"Cluster {current_cluster}")
     next_cluster_name = cluster_names.get(str(next_cluster), f"Cluster {next_cluster}")
@@ -233,6 +271,11 @@ if st.sidebar.button("Predict Customer Segment"):
             st.caption(f"Cluster Number: {current_cluster}")
             st.write("Model Used: Autoencoder + KMeans")
 
+            st.metric("Segment Certainty", f"{current_cluster_confidence:.2f}%")
+            st.progress(current_cluster_confidence / 100)
+
+            st.caption(f"Segmentation Silhouette Score: {segmentation_silhouette_score}")
+
     with result_col2:
         with st.container(border=True):
             st.markdown("### Predicted Next-Month Segment")
@@ -240,6 +283,18 @@ if st.sidebar.button("Predict Customer Segment"):
             st.caption(f"Cluster Number: {next_cluster}")
             st.write("Model Used: Tuned XGBoost")
 
+            if next_cluster_confidence is not None:
+                st.metric("Prediction Confidence", f"{next_cluster_confidence:.2f}%")
+                st.progress(next_cluster_confidence / 100)
+            else:
+                st.warning("Prediction confidence is not available.")
+
+            st.caption(f"XGBoost Test Accuracy: {xgboost_test_accuracy:.2f}%")
+
+    st.info(
+        "Note: Current segment certainty is distance-based because KMeans is an unsupervised model. "
+        "Next-month prediction confidence is based on XGBoost probability output."
+    )
     st.subheader("Marketing Recommendation")
     st.success(get_recommendation(current_cluster, next_cluster))
 
