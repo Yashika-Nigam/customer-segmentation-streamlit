@@ -212,6 +212,7 @@ if st.sidebar.button("Predict Customer Segment"):
     # Predict next-month cluster
     next_cluster = int(xgb_model.predict(xgb_input)[0])
 
+    # Get business names of clusters
     current_cluster_name = cluster_names.get(str(current_cluster), f"Cluster {current_cluster}")
     next_cluster_name = cluster_names.get(str(next_cluster), f"Cluster {next_cluster}")
 
@@ -221,40 +222,26 @@ if st.sidebar.button("Predict Customer Segment"):
     st.subheader("Customer Input Data")
     st.dataframe(input_df, width="stretch")
 
-    col1, col2 = st.columns(2)
+    st.subheader("Prediction Result")
 
-    with col1:
-        st.metric(
-            label="Current Customer Segment",
-            value=current_cluster_name
-        )
+    result_col1, result_col2 = st.columns(2)
 
-    with col2:
-        st.metric(
-            label="Predicted Next-Month Segment",
-            value=next_cluster_name
-        )
+    with result_col1:
+        with st.container(border=True):
+            st.markdown("### Current Segment")
+            st.markdown(f"**{current_cluster_name}**")
+            st.caption(f"Cluster Number: {current_cluster}")
+            st.write("Model Used: Autoencoder + KMeans")
+
+    with result_col2:
+        with st.container(border=True):
+            st.markdown("### Predicted Next-Month Segment")
+            st.markdown(f"**{next_cluster_name}**")
+            st.caption(f"Cluster Number: {next_cluster}")
+            st.write("Model Used: Tuned XGBoost")
 
     st.subheader("Marketing Recommendation")
     st.success(get_recommendation(current_cluster, next_cluster))
-
-    st.subheader("Prediction Summary")
-
-summary_col1, summary_col2 = st.columns(2)
-
-with summary_col1:
-    with st.container(border=True):
-        st.markdown("### Current Segment")
-        st.markdown(f"**{current_cluster_name}**")
-        st.caption(f"Cluster Number: {current_cluster}")
-        st.write("Model Used: Autoencoder + KMeans")
-
-with summary_col2:
-    with st.container(border=True):
-        st.markdown("### Predicted Next-Month Segment")
-        st.markdown(f"**{next_cluster_name}**")
-        st.caption(f"Cluster Number: {next_cluster}")
-        st.write("Model Used: Tuned XGBoost")
 
 # -----------------------------
 # Footer
