@@ -238,14 +238,23 @@ if st.sidebar.button("Predict Customer Segment"):
     st.subheader("Marketing Recommendation")
     st.success(get_recommendation(current_cluster, next_cluster))
 
-    st.subheader("Technical Summary")
-    st.write({
-        "Current Cluster Number": current_cluster,
-        "Next-Month Cluster Number": next_cluster,
-        "Current Segmentation Model": "Autoencoder + KMeans",
-        "Next-Month Prediction Model": "Tuned XGBoost"
-    })
+    st.subheader("Prediction Summary")
 
+summary_col1, summary_col2 = st.columns(2)
+
+with summary_col1:
+    with st.container(border=True):
+        st.markdown("### Current Segment")
+        st.markdown(f"**{current_cluster_name}**")
+        st.caption(f"Cluster Number: {current_cluster}")
+        st.write("Model Used: Autoencoder + KMeans")
+
+with summary_col2:
+    with st.container(border=True):
+        st.markdown("### Predicted Next-Month Segment")
+        st.markdown(f"**{next_cluster_name}**")
+        st.caption(f"Cluster Number: {next_cluster}")
+        st.write("Model Used: Tuned XGBoost")
 
 # -----------------------------
 # Footer
