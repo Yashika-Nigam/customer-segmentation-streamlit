@@ -175,6 +175,57 @@ avg_unit_price = st.sidebar.slider(
 )
 
 # -----------------------------
+# Segment Average Profiles
+# -----------------------------
+segment_average_profiles = {
+    0: {
+        "Recency": 57.18,
+        "Frequency": 69.92,
+        "Monetary": 1142.51,
+        "TotalQuantity": 647.14,
+        "UniqueProducts": 54.49,
+        "UniqueOrders": 3.14,
+        "AvgUnitPrice": 3.55
+    },
+    1: {
+        "Recency": 123.67,
+        "Frequency": 20.49,
+        "Monetary": 3500.02,
+        "TotalQuantity": 2263.02,
+        "UniqueProducts": 8.50,
+        "UniqueOrders": 2.69,
+        "AvgUnitPrice": 3.46
+    },
+    2: {
+        "Recency": 102.95,
+        "Frequency": 52.18,
+        "Monetary": 2439.32,
+        "TotalQuantity": 1518.74,
+        "UniqueProducts": 25.59,
+        "UniqueOrders": 3.80,
+        "AvgUnitPrice": 6.89
+    },
+    3: {
+        "Recency": 84.88,
+        "Frequency": 78.94,
+        "Monetary": 939.42,
+        "TotalQuantity": 481.49,
+        "UniqueProducts": 67.50,
+        "UniqueOrders": 2.45,
+        "AvgUnitPrice": 3.58
+    },
+    4: {
+        "Recency": 67.45,
+        "Frequency": 70.07,
+        "Monetary": 1584.47,
+        "TotalQuantity": 899.46,
+        "UniqueProducts": 45.04,
+        "UniqueOrders": 3.97,
+        "AvgUnitPrice": 4.77
+    }
+}
+
+# -----------------------------
 # Prediction
 # -----------------------------
 if st.sidebar.button("Predict Customer Segment"):
@@ -257,8 +308,31 @@ if st.sidebar.button("Predict Customer Segment"):
     # -----------------------------
     # Output Section
     # -----------------------------
-    st.subheader("Customer Input Data")
-    st.dataframe(input_df, width="stretch")
+    st.subheader("Customer vs Segment Average")
+
+    segment_avg = segment_average_profiles[current_cluster]
+
+    comparison_rows = []
+
+    for metric in phase2_feature_cols:
+        customer_value = float(input_df[metric].iloc[0])
+        segment_value = float(segment_avg[metric])
+        difference = customer_value - segment_value
+
+        comparison_rows.append({
+            "Metric": metric,
+            "Customer Value": round(customer_value, 2),
+            "Segment Average": round(segment_value, 2),
+            "Difference": round(difference, 2)
+        })
+
+    comparison_df = pd.DataFrame(comparison_rows)
+
+    st.dataframe(comparison_df, width="stretch", hide_index=True)
+
+    st.caption(
+        "This table compares the entered customer values with the average behavior of the predicted customer segment."
+    )
 
     st.subheader("Prediction Result")
 
