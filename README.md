@@ -145,7 +145,7 @@ The application is deployed using Streamlit Community Cloud. The app loads the s
 
 This project was developed as part of an M.Tech Data Science thesis titled:
 
-**AI-Driven Customer Personality Analysis and Behavioral Segmentation for Personalized Digital Marketing**
+**AI-Driven Dynamic Customer Behavioral Intelligence Framework using Deep Learning** 
 
 The project demonstrates how machine learning and deep learning can be used to transform customer transaction data into actionable marketing intelligence.
 
