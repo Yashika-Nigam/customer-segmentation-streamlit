@@ -7,7 +7,10 @@ from pathlib import Path
 from tensorflow.keras.models import load_model
 from xgboost import XGBClassifier
 
-
+@st.cache_data
+def load_feature_ranges():
+    with open("saved_models/feature_ranges.json", "r") as f:
+        return json.load(f)
 # -----------------------------
 # Page Setup
 # -----------------------------
@@ -113,66 +116,76 @@ st.write(
 st.markdown("---")
 
 
+
 # -----------------------------
 # Sidebar Input
 # -----------------------------
 st.sidebar.header("Enter Customer Behavioral Details")
 
+feature_ranges = load_feature_ranges()
+
 recency = st.sidebar.slider(
     "Recency: Days since last purchase",
-    min_value=0,
-    max_value=365,
-    value=30,
+    min_value=int(feature_ranges["Recency"]["min"]),
+    max_value=int(feature_ranges["Recency"]["max"]),
+    value=int(feature_ranges["Recency"]["median"]),
     step=1
 )
 
 frequency = st.sidebar.slider(
-    "Frequency: Number of transactions/orders",
-    min_value=1,
-    max_value=100,
-    value=5,
+    "Frequency: Number of orders",
+    min_value=int(feature_ranges["Frequency"]["min"]),
+    max_value=int(feature_ranges["Frequency"]["max"]),
+    value=int(feature_ranges["Frequency"]["median"]),
     step=1
 )
 
 monetary = st.sidebar.slider(
     "Monetary: Total spending amount",
-    min_value=0,
-    max_value=10000,
-    value=1000,
-    step=100
+    min_value=float(feature_ranges["Monetary"]["min"]),
+    max_value=float(feature_ranges["Monetary"]["max"]),
+    value=float(feature_ranges["Monetary"]["median"]),
+    step=100.0
 )
 
 total_quantity = st.sidebar.slider(
     "Total Quantity Purchased",
-    min_value=0,
-    max_value=5000,
-    value=100,
-    step=10
+    min_value=int(feature_ranges["TotalQuantity"]["min"]),
+    max_value=int(feature_ranges["TotalQuantity"]["max"]),
+    value=int(feature_ranges["TotalQuantity"]["median"]),
+    step=1
 )
 
 unique_products = st.sidebar.slider(
     "Unique Products Purchased",
-    min_value=1,
-    max_value=100,
-    value=10,
+    min_value=int(feature_ranges["UniqueProducts"]["min"]),
+    max_value=int(feature_ranges["UniqueProducts"]["max"]),
+    value=int(feature_ranges["UniqueProducts"]["median"]),
     step=1
 )
 
-unique_orders = st.sidebar.slider(
-    "Unique Orders",
-    min_value=1,
-    max_value=50,
-    value=5,
+customer_lifetime = st.sidebar.slider(
+    "Customer Lifetime: Active customer duration in days",
+    min_value=int(feature_ranges["CustomerLifetime"]["min"]),
+    max_value=int(feature_ranges["CustomerLifetime"]["max"]),
+    value=int(feature_ranges["CustomerLifetime"]["median"]),
     step=1
 )
 
-avg_unit_price = st.sidebar.slider(
-    "Average Unit Price",
-    min_value=0,
-    max_value=500,
-    value=20,
-    step=1
+avg_order_value = monetary / (frequency + 1)
+
+purchase_rate = frequency / (recency + 1)
+
+quantity_per_order = total_quantity / (frequency + 1)
+
+spend_per_product = monetary / (unique_products + 1)
+
+purchase_frequency_variance = float(
+    feature_ranges["PurchaseFrequencyVariance"]["median"]
 )
+unique_orders = frequency
+
+avg_unit_price = monetary / total_quantity if total_quantity != 0 else 0
 
 # -----------------------------
 # Segment Average Profiles
@@ -225,23 +238,29 @@ segment_average_profiles = {
     }
 }
 
+unique_orders = frequency
+avg_unit_price = monetary / total_quantity if total_quantity != 0 else 0
 # -----------------------------
 # Prediction
 # -----------------------------
-if st.sidebar.button("Predict Customer Segment"):
 
-    input_data = {
+if st.sidebar.button("Predict Customer Segment"):
+    input_df = pd.DataFrame([{
         "Recency": recency,
         "Frequency": frequency,
         "Monetary": monetary,
         "TotalQuantity": total_quantity,
         "UniqueProducts": unique_products,
+        "CustomerLifetime": customer_lifetime,
+        "AvgOrderValue": avg_order_value,
+        "PurchaseRate": purchase_rate,
+        "QuantityPerOrder": quantity_per_order,
+        "SpendPerProduct": spend_per_product,
+        "PurchaseFrequencyVariance": purchase_frequency_variance,
         "UniqueOrders": unique_orders,
         "AvgUnitPrice": avg_unit_price
-    }
-
-    input_df = pd.DataFrame([input_data])
-
+    }])
+    
     # Arrange columns exactly like training
     input_df = input_df[phase2_feature_cols]
 
@@ -263,17 +282,14 @@ if st.sidebar.button("Predict Customer Segment"):
     # Predict next-month cluster
     next_cluster = int(xgb_model.predict(xgb_input)[0])
 
-        # -----------------------------
+    # -----------------------------
     # Confidence / Certainty Scores
     # -----------------------------
-
-    # KMeans does not give probability, so this is distance-based certainty
     cluster_distances = kmeans.transform(input_encoded)[0]
     distance_similarity = np.exp(-(cluster_distances - cluster_distances.min()))
     cluster_certainty_scores = distance_similarity / distance_similarity.sum()
     current_cluster_confidence = float(cluster_certainty_scores[current_cluster]) * 100
 
-    # XGBoost gives probability-based confidence
     try:
         next_cluster_probabilities = xgb_model.predict_proba(xgb_input)[0]
         next_cluster_confidence = float(np.max(next_cluster_probabilities)) * 100
@@ -282,24 +298,6 @@ if st.sidebar.button("Predict Customer Segment"):
 
     segmentation_silhouette_score = 0.5706
     xgboost_test_accuracy = 78.58
-
-    # -----------------------------
-    # Confidence / Certainty Scores
-    # -----------------------------
-
-    # KMeans does not provide real probability.
-    # So we calculate distance-based certainty for current segment.
-    cluster_distances = kmeans.transform(input_encoded)[0]
-    distance_similarity = np.exp(-(cluster_distances - cluster_distances.min()))
-    cluster_certainty_scores = distance_similarity / distance_similarity.sum()
-    current_cluster_confidence = float(cluster_certainty_scores[current_cluster]) * 100
-
-    # XGBoost provides probability-based confidence for next-month prediction.
-    try:
-        next_cluster_probabilities = xgb_model.predict_proba(xgb_input)[0]
-        next_cluster_confidence = float(np.max(next_cluster_probabilities)) * 100
-    except Exception:
-        next_cluster_confidence = None
 
     # Get business names of clusters
     current_cluster_name = cluster_names.get(str(current_cluster), f"Cluster {current_cluster}")

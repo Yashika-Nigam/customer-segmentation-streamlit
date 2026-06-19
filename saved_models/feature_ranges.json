@@ -1,0 +1,57 @@
+{
+    "Recency": {
+        "min": 1.0,
+        "max": 374.0,
+        "median": 51.0
+    },
+    "Frequency": {
+        "min": 1.0,
+        "max": 209.0,
+        "median": 2.0
+    },
+    "Monetary": {
+        "min": 3.75,
+        "max": 280206.02,
+        "median": 674.485
+    },
+    "TotalQuantity": {
+        "min": 1.0,
+        "max": 196915.0,
+        "median": 379.0
+    },
+    "UniqueProducts": {
+        "min": 1.0,
+        "max": 1787.0,
+        "median": 35.0
+    },
+    "CustomerLifetime": {
+        "min": 0.0,
+        "max": 373.0,
+        "median": 92.5
+    },
+    "AvgOrderValue": {
+        "min": 1.875,
+        "max": 56157.5,
+        "median": 193.69
+    },
+    "PurchaseRate": {
+        "min": 0.0026666666666666666,
+        "max": 104.5,
+        "median": 0.0449438202247191
+    },
+    "QuantityPerOrder": {
+        "min": 0.5,
+        "max": 37107.5,
+        "median": 109.58333333333334
+    },
+    "SpendPerProduct": {
+        "min": 1.875,
+        "max": 42118.125,
+        "median": 18.965666666666664
+    },
+    "PurchaseFrequencyVariance": {
+        "min": 0.0,
+        "max": 44165.333333333336,
+        "median": 46.432976057155585
+    }
+}
